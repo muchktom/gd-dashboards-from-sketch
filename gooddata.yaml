@@ -1,0 +1,8 @@
+profiles:
+  dev:
+    host: https://ux-team.internal.cloud.gooddata.com/
+    token: $GOODDATA_API_TOKEN
+    workspace_id: b8c8f2edcef94acdad5e3380d2154a56
+    data_source: ab38af51-0a5d-43e6-b22c-d197b88faea7
+source_dir: analytics
+default_profile: dev
