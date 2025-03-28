@@ -1,6 +1,4 @@
-import base64
 from openai import OpenAI
-from dotenv import load_dotenv
 from pathlib import Path
 import json
 import os
@@ -21,43 +19,6 @@ def load_directory_into_string(directory_path):
     # Return the combined contents of all files
     return all_contents
 
-def ask_ai_to_create_viz(base64_image):
-    client = OpenAI(
-        # This is the default and can be omitted
-        api_key=os.environ.get("OPENAI_API_KEY"),
-    )
-
-    INSTRUCTIONS = Path('prompts/visualization_builder.txt').read_text()
-    PROMPT_DATASETS = load_directory_into_string('analytics/datasets')
-    PROMPT_EXAMPLES_OF_VISUALIZATION = load_directory_into_string('analytics/visualisations')
-    PROMPT_METRICS = load_directory_into_string('analytics/metrics')
-    schema = json.loads(Path('prompts/visualization_schema.json').read_text())
-
-    outcome = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": INSTRUCTIONS},
-            {"role": "assistant", "content": "Here are the fields from which you can build visualizations. Use only existing attributes and facts"+ PROMPT_DATASETS},
-            {"role": "assistant", "content": "Here are the metrics from which you can build visualizations. Use only existing metrics"+ PROMPT_METRICS},
-            {"role": "assistant", "content": "Here are examples of existing visualizations: " + PROMPT_EXAMPLES_OF_VISUALIZATION},
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": "Map what is on the image to the described visualization structure. Use the available fields. If not found, use the most similar fields.",
-                    },
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
-                    },
-                ],
-            }
-        ], 
-        response_format = schema
-    )
-    return outcome.choices[0].message.content
-
 def ask_ai_to_create_dashboard_visualizations(base64_image):
     client = OpenAI(
         # This is the default and can be omitted
@@ -67,7 +28,6 @@ def ask_ai_to_create_dashboard_visualizations(base64_image):
     INSTRUCTIONS = Path('prompts/visualization_builder.txt').read_text()
     PROMPT_DATASETS = load_directory_into_string('analytics/datasets')
     PROMPT_EXAMPLES_OF_VISUALIZATION = load_directory_into_string('analytics/visualisations')
-    PROMPT_EXAMPLES_OF_DASHBOARDS = load_directory_into_string('analytics/dashboards')
     PROMPT_METRICS = load_directory_into_string('analytics/metrics')
     schema = json.loads(Path('prompts/visualizations_schema.json').read_text())
 
@@ -107,7 +67,6 @@ def ask_ai_to_create_dashboard(base64_image):
     PROMPT_DATASETS = load_directory_into_string('analytics/datasets')
     PROMPT_EXAMPLES_OF_VISUALIZATION = load_directory_into_string('analytics/visualisations')
     PROMPT_EXAMPLES_OF_DASHBOARDS = load_directory_into_string('analytics/dashboards')
-    PROMPT_METRICS = load_directory_into_string('analytics/metrics')
     schema = json.loads(Path('prompts/dashboard_schema.json').read_text())
 
     outcome = client.chat.completions.create(

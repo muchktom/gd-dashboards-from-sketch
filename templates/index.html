@@ -16,20 +16,19 @@
         }
         .upload-btn {
             position: absolute;
-            top: 7px;
-            left: 15px;
+            top: 9px;
+            left: 155px;
             background: #f5f8fa;
             border: 1px solid rgba(31,52,73,.2);
             box-shadow: 0 1px 1px 0 rgba(20,56,93,.15),inset 0 -1px 0 0 rgba(177,193,209,.6);
             color: #778491;
-            padding: 5px 14px;
+            padding: 5px 7px;
             border-radius: 4px;
             font-size: 14px;
             cursor: pointer;
             display: flex;
             align-items: center;
             border-radius: 3px;
-            width: 200px;
         }
         .upload-btn:hover {
             background: #e6e6e6;
@@ -40,7 +39,6 @@
         .upload-icon {
             width: 16px;
             height: 16px;
-            margin-right: 5px;
         }
 
         /* Loading overlay */
@@ -80,7 +78,6 @@
 
     <label class="upload-btn">
         <img src="https://cdn-icons-png.flaticon.com/512/109/109612.png" class="upload-icon" alt="Upload Icon">
-        Upload Visualization
         <input type="file" accept="image/*" id="fileInput">
     </label>
 
@@ -92,7 +89,7 @@
     <iframe
             title="My Embedded GoodData Analytical Designer"
             id="embedded-app-frame"
-            src="https://ux-team.internal.cloud.gooddata.com/analyze/embedded/#/b8c8f2edcef94acdad5e3380d2154a56"
+            src="https://ux-team.internal.cloud.gooddata.com/dashboards/embedded/#/workspace/b8c8f2edcef94acdad5e3380d2154a56?showNavigation=true"
             style="height: 100vh; width: 100vw;"
             frameborder="0"
         ></iframe>
@@ -110,7 +107,7 @@
                 const messages = [
                     "Uploading image",
                     "Mapping the image to existing objects",
-                    "Preparing your visualization",
+                    "Preparing your dashboard",
                     "Cleaning environment",
                     "Almost there"
                 ];
@@ -125,7 +122,7 @@
                 }, 3000);
 
                 try {
-                    let response = await fetch("http://127.0.0.1:8000/upload", {
+                    let response = await fetch("http://127.0.0.1:8000/uploadDashboard", {
                         method: "POST",
                         body: formData
                     });
@@ -138,18 +135,25 @@
 
                         const iframe = document.getElementById('embedded-app-frame');
                         const currentSrc = iframe.src;
-                        const workspaceIdEndIndex = currentSrc.indexOf('#/') + 2;
-                        const baseSrc = currentSrc.substring(0, workspaceIdEndIndex);
-                        const visIdIndex = currentSrc.indexOf('/', workspaceIdEndIndex);
+                        
+                        // Extract the part of the URL before the query string (if any)
+                        let urlWithoutQuery = currentSrc.split('?')[0];
 
-                        let newSrc;
-                        if (visIdIndex !== -1) {
-                            newSrc = `${baseSrc}${currentSrc.substring(workspaceIdEndIndex, visIdIndex)}/${result.vis_id}`;
+                        // Check if "/dashboard/" exists in the URL
+                        if (urlWithoutQuery.includes("/dashboard/")) {
+                            // Replace anything behind "/dashboard/" with the new dashboard_id
+                            urlWithoutQuery = urlWithoutQuery.replace(/\/dashboard\/[^\/]+/, "/dashboard/" + result.dashboard_id);
                         } else {
-                            newSrc = `${currentSrc}/${result.vis_id}`;
+                            // Add "/dashboard/result.dashboard_id" to the URL if "/dashboard/" isn't found
+                            urlWithoutQuery += "/dashboard/" + result.dashboard_id;
                         }
 
-                        iframe.src = newSrc;
+                        // Get the query part (if any) and append it back to the modified URL
+                        let query = currentSrc.split('?')[1] ? '?' + currentSrc.split('?')[1] : '';
+
+                        let finalUrl = urlWithoutQuery + query;
+
+                        iframe.src = finalUrl;
                     }
 
                 } catch (error) {
